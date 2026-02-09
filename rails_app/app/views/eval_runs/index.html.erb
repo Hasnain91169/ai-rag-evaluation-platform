@@ -1,0 +1,35 @@
+<div class="card">
+  <h2>Evaluation Runs</h2>
+  <%= button_to "Run Offline Evaluation", offline_eval_runs_path, method: :post %>
+  <br>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Kind</th>
+        <th>Started</th>
+        <th>Finished</th>
+        <th>Notes</th>
+        <th>Key Metrics</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @eval_runs.each do |run| %>
+        <tr>
+          <td><%= run.id %></td>
+          <td><%= run.kind %></td>
+          <td><%= run.started_at&.strftime("%Y-%m-%d %H:%M") %></td>
+          <td><%= run.finished_at&.strftime("%Y-%m-%d %H:%M") %></td>
+          <td><%= run.notes %></td>
+          <td>
+            <div class="small">accuracy=<%= run.metric_value("answer_accuracy")&.round(3) %></div>
+            <div class="small">hit_rate=<%= run.metric_value("retrieval_hit_rate")&.round(3) %></div>
+            <div class="small">attribution=<%= run.metric_value("attribution_score")&.round(3) %></div>
+            <div class="small">hallucination_rate=<%= run.metric_value("hallucination_rate")&.round(3) %></div>
+            <div class="small">latency_ms=<%= run.metric_value("latency_ms")&.round(2) %></div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

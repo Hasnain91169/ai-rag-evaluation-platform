@@ -1,0 +1,25 @@
+<div class="card">
+  <h2>Documents</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Source</th>
+        <th>Chunks</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @documents.each do |doc| %>
+        <tr>
+          <td><a href="<%= document_path(doc) %>"><%= doc.id %></a></td>
+          <td><%= doc.title %></td>
+          <td><%= doc.source %></td>
+          <td><%= doc.chunks.size %></td>
+          <td><%= doc.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

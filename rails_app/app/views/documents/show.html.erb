@@ -1,0 +1,25 @@
+<div class="card">
+  <h2>Document #<%= @document.id %> - <%= @document.title %></h2>
+  <p><strong>Source:</strong> <%= @document.source %></p>
+  <p><strong>Created:</strong> <%= @document.created_at.strftime("%Y-%m-%d %H:%M") %></p>
+</div>
+
+<div class="card">
+  <h3>Chunks</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Chunk Index</th>
+        <th>Content</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @document.chunks.order(:chunk_index).each do |chunk| %>
+        <tr id="chunk-<%= chunk.id %>">
+          <td><%= chunk.chunk_index %></td>
+          <td class="mono"><%= chunk.content %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

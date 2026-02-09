@@ -1,0 +1,27 @@
+<div class="card">
+  <h2>Query Traces</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Query</th>
+        <th>Prompt</th>
+        <th>Response</th>
+        <th>Latency (ms)</th>
+        <th>Diagnosis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @query_traces.each do |trace| %>
+        <tr>
+          <td><a href="<%= query_trace_path(trace) %>"><%= trace.id %></a></td>
+          <td><%= trace.query_text %></td>
+          <td><%= trace.model_response&.prompt_version %></td>
+          <td><%= truncate(trace.model_response&.response_text.to_s, length: 140) %></td>
+          <td><%= trace.model_response&.latency_ms %></td>
+          <td><span class="tag tag-<%= trace.diagnosis_tag %>"><%= trace.diagnosis_tag %></span></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

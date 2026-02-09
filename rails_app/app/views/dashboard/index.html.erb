@@ -1,0 +1,119 @@
+<div class="card">
+  <h2>Offline Metric Trends (Last 12 Runs)</h2>
+  <p class="small">Week-over-week drift is visible in metric movement across run timestamps.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Run</th>
+        <th>Started</th>
+        <th>Accuracy</th>
+        <th>Retrieval Hit Rate</th>
+        <th>Hallucination Rate</th>
+        <th>Latency (ms)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @trend_rows.each do |row| %>
+        <tr>
+          <td>#<%= row[:run_id] %></td>
+          <td><%= row[:started_at]&.strftime("%Y-%m-%d %H:%M") %></td>
+          <td><%= row[:accuracy]&.round(3) %></td>
+          <td><%= row[:hit_rate]&.round(3) %></td>
+          <td><%= row[:hallucination_rate]&.round(3) %></td>
+          <td><%= row[:latency_ms]&.round(2) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <br>
+  <%= button_to "Run Offline Eval", offline_eval_runs_path, method: :post %>
+</div>
+
+<div class="card">
+  <h2>Weekly Drift Summary</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Week Start</th>
+        <th>Accuracy (avg)</th>
+        <th>Hit Rate (avg)</th>
+        <th>Hallucination (avg)</th>
+        <th>Latency (avg ms)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @weekly_rows.each do |row| %>
+        <tr>
+          <td><%= row[:week_start] %></td>
+          <td><%= row[:accuracy]&.round(3) %></td>
+          <td><%= row[:hit_rate]&.round(3) %></td>
+          <td><%= row[:hallucination_rate]&.round(3) %></td>
+          <td><%= row[:latency_ms]&.round(2) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Metrics by Prompt Version</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Prompt Version</th>
+        <th>Trace Count</th>
+        <th>Avg Faithfulness</th>
+        <th>Avg Attribution</th>
+        <th>Avg Latency (ms)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @prompt_version_rows.each do |row| %>
+        <tr>
+          <td><%= row[:prompt_version] %></td>
+          <td><%= row[:traces] %></td>
+          <td><%= row[:avg_faithfulness]&.round(3) %></td>
+          <td><%= row[:avg_attribution]&.round(3) %></td>
+          <td><%= row[:avg_latency_ms]&.round(2) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Recent Traces</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Query</th>
+        <th>Top Retrieved Chunks</th>
+        <th>Response</th>
+        <th>Metrics</th>
+        <th>Diagnosis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @recent_traces.each do |trace| %>
+        <tr>
+          <td><%= trace.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          <td><a href="<%= query_trace_path(trace) %>"><%= trace.query_text %></a></td>
+          <td>
+            <% base_rank_map = trace.retrieval_results.order(base_score: :desc).each_with_index.to_h { |r, i| [r.id, i + 1] } %>
+            <% trace.retrieval_results.order(:rank).limit(3).each do |r| %>
+              <div class="small">#<%= r.rank %> (base #<%= base_rank_map[r.id] %>) final=<%= r.score.round(3) %> base=<%= r.base_score.round(3) %> <span class="mono"><%= truncate(r.chunk.content, length: 90) %></span></div>
+            <% end %>
+          </td>
+          <td><%= truncate(trace.model_response&.response_text.to_s, length: 160) %></td>
+          <td>
+            <div class="small">faithfulness=<%= trace.latest_metric_value("faithfulness")&.round(3) %></div>
+            <div class="small">attribution=<%= trace.latest_metric_value("attribution_score")&.round(3) %></div>
+            <div class="small">hit_rate=<%= trace.latest_metric_value("retrieval_hit_rate")&.round(3) %></div>
+          </td>
+          <td><span class="tag tag-<%= trace.diagnosis_tag %>"><%= trace.diagnosis_tag %></span></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

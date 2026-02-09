@@ -1,0 +1,14 @@
+<div class="card">
+  <h2>Ask Question (RAG)</h2>
+  <%= form_with model: @query_trace, url: query_traces_path, method: :post do |f| %>
+    <%= f.label :query_text, "Question" %>
+    <%= f.text_field :query_text, required: true, placeholder: "What is the SSO session timeout?" %>
+
+    <%= f.label :prompt_template_id, "Prompt Version" %>
+    <%= f.select :prompt_template_id,
+      options_for_select(@prompt_templates.map { |pt| ["#{pt.name}:#{pt.version}#{pt.active? ? ' (active)' : ''}", pt.id] }, @active_prompt_template_id),
+      { include_blank: false } %>
+
+    <%= f.submit "Run Query" %>
+  <% end %>
+</div>

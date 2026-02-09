@@ -1,0 +1,88 @@
+<div class="card">
+  <h2>Trace #<%= @query_trace.id %></h2>
+  <p><strong>Query:</strong> <%= @query_trace.query_text %></p>
+  <p><strong>Diagnosis:</strong> <span class="tag tag-<%= @diagnosis %>"><%= @diagnosis %></span></p>
+  <p class="small">Rule: ranking_issue if base hit high but final hit low; retrieval_issue if hit+faithfulness are low; prompting_issue if retrieval is good but attribution is low.</p>
+</div>
+
+<div class="card">
+  <h3>Model Response</h3>
+  <% if @query_trace.model_response %>
+    <p><strong>Model:</strong> <%= @query_trace.model_response.model_name %></p>
+    <p><strong>Prompt Version:</strong> <%= @query_trace.model_response.prompt_version %></p>
+    <p><strong>Latency:</strong> <%= @query_trace.model_response.latency_ms %> ms</p>
+    <p><strong>Cited chunk(s):</strong>
+      <% if @query_trace.model_response.cited_chunk_ids.any? %>
+        <% @query_trace.model_response.cited_chunk_ids.each do |chunk_id| %>
+          <% cited_chunk = Chunk.find_by(id: chunk_id) %>
+          <% if cited_chunk %>
+            <a class="tag" href="<%= document_path(cited_chunk.document_id) %>#chunk-<%= chunk_id %>">chunk:<%= chunk_id %></a>
+          <% else %>
+            <span class="tag">chunk:<%= chunk_id %></span>
+          <% end %>
+        <% end %>
+      <% else %>
+        none
+      <% end %>
+    </p>
+    <pre class="mono"><%= @query_trace.model_response.response_text %></pre>
+  <% else %>
+    <p>No model response recorded.</p>
+  <% end %>
+</div>
+
+<div class="card">
+  <h3>Retrieval Results (Base vs Final)</h3>
+  <% base_ids = @query_trace.retrieval_results.order(base_score: :desc).pluck(:chunk_id) %>
+  <% final_ids = @query_trace.retrieval_results.order(:rank).pluck(:chunk_id) %>
+  <% if base_ids != final_ids %>
+    <p class="small">Reranker changed ordering from base vector retrieval.</p>
+  <% else %>
+    <p class="small">Reranker kept the same ordering as base vector retrieval.</p>
+  <% end %>
+  <table>
+    <thead>
+      <tr>
+        <th>Final Rank</th>
+        <th>Base Rank</th>
+        <th>Final Score</th>
+        <th>Base Score</th>
+        <th>Chunk ID</th>
+        <th>Chunk Content</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% base_rank_map = @query_trace.retrieval_results.order(base_score: :desc).each_with_index.to_h { |r, i| [r.id, i + 1] } %>
+      <% @query_trace.retrieval_results.order(:rank).each do |result| %>
+        <tr>
+          <td><%= result.rank %></td>
+          <td><%= base_rank_map[result.id] %></td>
+          <td><%= result.score.round(4) %></td>
+          <td><%= result.base_score.round(4) %></td>
+          <td><%= result.chunk_id %></td>
+          <td class="mono"><%= result.chunk.content %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Eval Metrics</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @query_trace.eval_metrics.order(created_at: :desc).each do |metric| %>
+        <tr>
+          <td><%= metric.name %></td>
+          <td><%= metric.value_numeric.round(4) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

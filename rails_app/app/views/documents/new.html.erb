@@ -1,0 +1,15 @@
+<div class="card">
+  <h2>Ingest Document</h2>
+  <%= form_with model: @document, url: documents_path, method: :post do |f| %>
+    <%= f.label :title %>
+    <%= f.text_field :title, required: true %>
+
+    <%= f.label :source %>
+    <%= f.text_field :source, required: true, placeholder: "e.g. product-docs/internal" %>
+
+    <%= f.label :body %>
+    <%= f.text_area :body, rows: 14, required: true, placeholder: "Paste document text here" %>
+
+    <%= f.submit "Ingest" %>
+  <% end %>
+</div>
